@@ -1,32 +1,68 @@
-"use client"
+'use client'
 
-import { ModeToggle } from "@/components/mode-toggle"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogClose } from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
+import { ModeToggle } from '@/components/mode-toggle'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogClose } from '@/components/ui/dialog'
 import {
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-//import { UserProfile } from '@/components/user-profile'
-//import config from '@/config'
-//import { HamburgerMenuIcon } from '@radix-ui/react-icons'
-import {
-  ArrowRightLeft,
-  Banknote,
-  Bot,
-  Folder,
-  HomeIcon,
-  Menu,
-  Settings,
-  TrendingUp,
-} from "lucide-react"
-import Link from "next/link"
-import { ReactNode } from "react"
+} from '@/components/ui/sheet'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
+
+import { Bot, Menu, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
+import { ReactNode, useEffect } from 'react'
+import { useAccount, useSignMessage } from 'wagmi'
+import axios from 'axios'
 
 export default function DashboardTopNav({ children }: { children: ReactNode }) {
+  // when the wallet loging happens we need to call your code
+  const { address } = useAccount()
+  const { signMessageAsync } = useSignMessage()
+
+  useEffect(() => {
+    const login = async () => {
+      if (!address) return
+
+      try {
+        // Step 1: Get nonce from server
+        const nonceResponse = await axios.post(
+          'http://localhost:8000/auth/nonce',
+          { address }
+        )
+        const nonce = nonceResponse.data.nonce
+
+        // Step 2: Sign the nonce
+        const message = `One Time Nonce: ${nonce}`
+
+        // const signature = await web3.eth.personal.sign(message, account)
+
+        const signature = await signMessageAsync({ message })
+
+        // Step 3: Send the signed message and address to the server for verification
+        const loginResponse = await axios.post(
+          'http://localhost:8000/auth/login',
+          {
+            address,
+            signature,
+          }
+        )
+
+        const token = loginResponse.data.token
+        console.log('JWT Token:', token)
+
+        // Opcional: almacenar el token en localStorage o cookies
+        localStorage.setItem('token', token)
+      } catch (error) {
+        console.error('Login error:', error)
+      }
+    }
+
+    login()
+  }, [address])
+
   return (
     <div className="flex flex-col">
       <header className="flex h-14 lg:h-[55px] items-center gap-4 border-b px-3">
@@ -45,7 +81,7 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
             </SheetHeader>
             <div className="flex flex-col space-y-3 mt-[1rem]">
               <DialogClose asChild>
-                <Link href="/status">
+                <Link href="/">
                   <Button variant="outline" className="w-full">
                     <Bot className="mr-2 h-4 w-4" />
                     Agent Status
@@ -60,18 +96,19 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
                   </Button>
                 </Link>
               </DialogClose>
-              <DialogClose asChild>
+              {/* <DialogClose asChild>
                 <Link href="/transactions">
                   <Button variant="outline" className="w-full">
                     <ArrowRightLeft className="mr-2 h-4 w-4" />
                     Transactions
                   </Button>
                 </Link>
-              </DialogClose>
+              </DialogClose> */}
             </div>
           </SheetContent>
         </Dialog>
         <div className="flex justify-center items-center gap-2 ml-auto">
+          <ConnectButton />
           <ModeToggle />
         </div>
       </header>
