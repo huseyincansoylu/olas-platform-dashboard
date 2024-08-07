@@ -11,11 +11,12 @@ import {
 } from '@/components/ui/sheet'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
-import { Bot, Menu, TrendingUp } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import Link from 'next/link'
 import { ReactNode, useEffect } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import axios from 'axios'
+import { navLinks } from '@/lib/navLinks'
 
 export default function DashboardTopNav({ children }: { children: ReactNode }) {
   // when the wallet loging happens we need to call your code
@@ -76,34 +77,22 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
           <SheetContent side="left">
             <SheetHeader>
               <Link href="/">
-                <SheetTitle>Shutter RFP - Dashboard</SheetTitle>
+                <SheetTitle>Dashboard</SheetTitle>
               </Link>
             </SheetHeader>
             <div className="flex flex-col space-y-3 mt-[1rem]">
-              <DialogClose asChild>
-                <Link href="/">
-                  <Button variant="outline" className="w-full">
-                    <Bot className="mr-2 h-4 w-4" />
-                    Agent Status
-                  </Button>
-                </Link>
-              </DialogClose>
-              <DialogClose asChild>
-                <Link href="/statistics">
-                  <Button variant="outline" className="w-full">
-                    <TrendingUp className="mr-2 h-4 w-4" />
-                    Statistics
-                  </Button>
-                </Link>
-              </DialogClose>
-              {/* <DialogClose asChild>
-                <Link href="/transactions">
-                  <Button variant="outline" className="w-full">
-                    <ArrowRightLeft className="mr-2 h-4 w-4" />
-                    Transactions
-                  </Button>
-                </Link>
-              </DialogClose> */}
+              {navLinks.map((item) => {
+                return (
+                  <DialogClose asChild>
+                    <Link href={item.href}>
+                      <Button variant="outline" className="w-full">
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {item.name}
+                      </Button>
+                    </Link>
+                  </DialogClose>
+                )
+              })}
             </div>
           </SheetContent>
         </Dialog>
