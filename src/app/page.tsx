@@ -1,104 +1,40 @@
-'use client'
-
 import { DataTable } from '@/components/data-table'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { instanceColumns, suitesColumns } from './columns'
+import SeeAllNav from './see-all-nav'
+import { baseurl } from '@/lib/baseUrl'
 
-export const columns = [
-  {
-    accessorKey: 'id',
-    header: 'ID',
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-  },
-  {
-    accessorKey: 'numTransactions',
-    header: 'Number of transactions',
-  },
-  {
-    accessorKey: 'startTime',
-    header: 'Start time',
-  },
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }: any) => {
-      const agentId = row.original.id
-      const router = useRouter()
+async function getProjectFSMSuites() {
+  const res = await fetch(
+    `${baseurl}/api/projects/402b322b-5d92-45c4-ab61-5729ecb9723c/fsmsuites`
+  )
+  // The return value is *not* serialized
+  // You can return Date, Map, Set, etc.
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => router.push(`/transactions/${agentId}`)}
-            >
-              View transactions
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
+  if (!res.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error('Failed to fetch data')
+  }
 
-const mockAgentsList = [
-  {
-    id: 1,
-    status: 'online',
-    numTransactions: 23,
-    startTime: '2024-07-25 08:00',
-  },
-  {
-    id: 2,
-    status: 'offline',
-    numTransactions: 5,
-    startTime: '2024-07-25 09:30',
-  },
-  {
-    id: 3,
-    status: 'online',
-    numTransactions: 12,
-    startTime: '2024-07-25 11:00',
-  },
-  {
-    id: 4,
-    status: 'offline',
-    numTransactions: 7,
-    startTime: '2024-07-25 12:15',
-  },
-  {
-    id: 5,
-    status: 'online',
-    numTransactions: 30,
-    startTime: '2024-07-25 14:45',
-  },
-]
+  return res.json()
+}
 
-export default function Home() {
+export default async function Home() {
+  const data = await getProjectFSMSuites()
+
+  console.log(data[0].fsms)
+
   return (
     <>
       <div>
-        <h3 className="mb-4 text-lg font-semibold">Agent Lists</h3>
-        <DataTable data={mockAgentsList} columns={columns} />
+        <div className="flex justify-between items-center">
+          <h1 className="mb-4 text-xl font-semibold">{data[0].name}</h1>
+          <SeeAllNav />
+        </div>
+
+        <h3 className="mb-4 text-lg font-semibold mt-10">Fsms List</h3>
+        <DataTable data={data[0].fsms} columns={suitesColumns} />
+        <h3 className="mb-4 text-lg font-semibold mt-10">Instance List</h3>
+        <DataTable data={data[0].instances} columns={instanceColumns} />
       </div>
     </>
   )
