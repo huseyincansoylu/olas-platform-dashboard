@@ -11,14 +11,9 @@ export default function SeeAllNav() {
       <Button
         size={'sm'}
         variant="secondary"
-        onClick={() => router.push(`/fsm/1/allagents`)}
-      >
-        See All Agents
-      </Button>
-      <Button
-        size={'sm'}
-        variant="secondary"
-        onClick={() => router.push(`/fsm/1/allhistories`)}
+        onClick={() =>
+          router.push(`/fsm/1a43a0f8-78dd-472b-b4c4-003dbdee69a5/all`)
+        }
       >
         See All History
       </Button>

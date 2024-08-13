@@ -1,13 +1,13 @@
 'use client'
 import { DataTable } from '@/components/data-table'
 import React from 'react'
-import { columns } from './columns'
+import { columns } from './column'
 import { baseurl } from '@/lib/baseUrl'
-import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 
-async function getInstanceAgents(token: string, instanceId: string) {
-  const res = await fetch(`${baseurl}/api/instances/${instanceId}/agents`, {
+async function getAgentHistories(token: string, agentId: string) {
+  const res = await fetch(`${baseurl}/api/agents/${agentId}/history`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -16,14 +16,14 @@ async function getInstanceAgents(token: string, instanceId: string) {
   return res.json()
 }
 
-export default function Agent() {
+export default function History() {
   const token = localStorage.getItem('token')
 
-  const { instanceId } = useParams<{ instanceId: string }>()
+  const { agentId } = useParams<{ agentId: string }>()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['instances', instanceId, token],
-    queryFn: () => getInstanceAgents(token!, instanceId),
+    queryKey: ['instances', agentId, token],
+    queryFn: () => getAgentHistories(token!, agentId),
     enabled: !!token,
   })
 
@@ -31,7 +31,7 @@ export default function Agent() {
 
   return (
     <div>
-      <h3 className="mb-4 text-lg font-semibold">Agent List</h3>
+      <h3 className="mb-4 text-lg font-semibold">History List</h3>
       <DataTable data={data} columns={columns} />
     </div>
   )

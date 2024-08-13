@@ -1,6 +1,6 @@
 export const columns = [
   {
-    accessorKey: 'id',
+    accessorKey: 'historyId',
     header: 'ID',
   },
   {
@@ -10,13 +10,5 @@ export const columns = [
   {
     accessorKey: 'endTime',
     header: 'End',
-  },
-  {
-    accessorKey: 'numberOfRounds',
-    header: 'Number of rounds',
-  },
-  {
-    accessorKey: 'timeRan',
-    header: 'Time ran',
   },
 ]

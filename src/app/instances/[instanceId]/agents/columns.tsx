@@ -44,9 +44,7 @@ export const columns = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() =>
-                router.push(`/instances/${agentId}/agents/history`)
-              }
+              onClick={() => router.push(`/agents/${agentId}/history`)}
             >
               View history
             </DropdownMenuItem>

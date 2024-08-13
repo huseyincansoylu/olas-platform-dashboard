@@ -22,10 +22,7 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
   const token = localStorage.getItem('token')
 
   useAccountEffect({
-    onDisconnect() {
-      localStorage.removeItem('token')
-      setProjects([])
-    },
+    onDisconnect() {},
   })
 
   useEffect(() => {

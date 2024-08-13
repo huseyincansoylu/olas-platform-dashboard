@@ -13,56 +13,97 @@ import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 import { Menu } from 'lucide-react'
 import Link from 'next/link'
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import axios from 'axios'
 import { navLinks } from '@/lib/navLinks'
+import { baseurl } from '@/lib/baseUrl'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+
+async function getProjects(token: string) {
+  const res = await fetch(`${baseurl}/api/projects`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch projects')
+  }
+
+  return res.json()
+}
 
 export default function DashboardTopNav({ children }: { children: ReactNode }) {
-  // when the wallet loging happens we need to call your code
+  const [selectedOption, setSelectedOption] = useState<string>('')
+  const [token, setToken] = useState<string | null>(null)
   const { address } = useAccount()
   const { signMessageAsync } = useSignMessage()
 
+  const router = useRouter()
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['projects', token, address],
+    queryFn: () => getProjects(token!),
+    enabled: !!token,
+  })
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token')
+    setToken(storedToken)
+  }, [])
+
   useEffect(() => {
     const login = async () => {
-      if (!address) return
+      if (!address || token) return
 
       try {
         // Step 1: Get nonce from server
-        const nonceResponse = await axios.post(
-          'http://localhost:8000/auth/nonce',
-          { address }
-        )
+        const nonceResponse = await axios.post(`${baseurl}/auth/nonce`, {
+          address,
+        })
+
         const nonce = nonceResponse.data.nonce
 
         // Step 2: Sign the nonce
-        const message = `One Time Nonce: ${nonce}`
-
-        // const signature = await web3.eth.personal.sign(message, account)
+        const message = `${nonce}`
 
         const signature = await signMessageAsync({ message })
 
         // Step 3: Send the signed message and address to the server for verification
-        const loginResponse = await axios.post(
-          'http://localhost:8000/auth/login',
-          {
-            address,
-            signature,
-          }
-        )
+        const loginResponse = await axios.post(`${baseurl}/auth/verify`, {
+          address,
+          signature,
+        })
 
-        const token = loginResponse.data.token
-        console.log('JWT Token:', token)
-
-        // Opcional: almacenar el token en localStorage o cookies
-        localStorage.setItem('token', token)
+        const newToken = loginResponse.data.token
+        localStorage.setItem('token', newToken)
+        setToken(newToken) // Token'ı state'e kaydediyoruz
       } catch (error) {
         console.error('Login error:', error)
       }
     }
 
     login()
-  }, [address])
+  }, [address, token, signMessageAsync])
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const firstProjectId = data[0].id
+      setSelectedOption(firstProjectId)
+      router.push(`/?sp=${firstProjectId}`)
+    }
+  }, [data, router])
 
   return (
     <div className="flex flex-col">
@@ -83,7 +124,7 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
             <div className="flex flex-col space-y-3 mt-[1rem]">
               {navLinks.map((item) => {
                 return (
-                  <DialogClose asChild>
+                  <DialogClose asChild key={item.href}>
                     <Link href={item.href}>
                       <Button variant="outline" className="w-full">
                         <item.icon className="mr-2 h-4 w-4" />
@@ -96,6 +137,41 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
             </div>
           </SheetContent>
         </Dialog>
+
+        {address && (
+          <>
+            <div>Select Project: </div>
+            <div>
+              {isLoading ? (
+                <div>Loading projects...</div> // Yüklenirken gösterilecek bir mesaj
+              ) : (
+                <Select
+                  onValueChange={(value) => {
+                    setSelectedOption(value)
+                    router.push(`/?sp=${value}`)
+                  }}
+                  value={selectedOption}
+                >
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Projects</SelectLabel>
+
+                      {data?.map((item: any) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </>
+        )}
+
         <div className="flex justify-center items-center gap-2 ml-auto">
           <ConnectButton />
           <ModeToggle />
