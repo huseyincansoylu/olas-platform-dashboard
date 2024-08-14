@@ -52,11 +52,11 @@ export default function Home() {
     }
   }, [data])
 
-  if (!address) return 'Please login for the dashboard'
-
   if (isLoading) return 'Loading...'
 
   if (isError) return 'Failed to load data'
+
+  if (!address) return 'Please login for the dashboard'
 
   if (!data || data.length === 0 || !data[0]) {
     return 'No data available'

@@ -1,5 +1,6 @@
 'use client'
 import React, { createContext, useContext, useState, ReactNode } from 'react'
+import { useAccountEffect } from 'wagmi'
 
 interface ProjectContextType {
   selectedProjectId: string | null
@@ -16,6 +17,12 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   const setSelectedProjectId = (id: string) => {
     setSelectedProjectIdState(id)
   }
+
+  useAccountEffect({
+    onDisconnect() {
+      localStorage.removeItem('token')
+    },
+  })
 
   return (
     <ProjectContext.Provider
