@@ -1,26 +1,34 @@
+'use client'
 import { DataTable } from '@/components/data-table'
 import React from 'react'
 
 import { baseurl } from '@/lib/baseUrl'
 import { columns } from './columns'
+import { useParams } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 
-async function getInstanceAgents(fsmId: string) {
-  const res = await fetch(`${baseurl}/api/fsmsuites/${fsmId}/agents/history`)
-  // The return value is *not* serialized
-  // You can return Date, Map, Set, etc.
-
-  if (!res.ok) {
-    // This will activate the closest `error.js` Error Boundary
-    throw new Error('Failed to fetch data')
-  }
+async function getAgentHistories(token: string, fsmId: string) {
+  const res = await fetch(`${baseurl}/api/fsmsuites/${fsmId}/agents/history`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
 
   return res.json()
 }
 
-export default async function Agent({ params }: { params: { fsmId: string } }) {
-  const data = await getInstanceAgents(params.fsmId)
+export default function Agent() {
+  const token = localStorage.getItem('token')
 
-  console.log(params, 'params')
+  const { fsmId } = useParams<{ fsmId: string }>()
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['instances', fsmId, token],
+    queryFn: () => getAgentHistories(token!, fsmId),
+    enabled: !!token,
+  })
+
+  if (isLoading) return 'Loading...'
 
   return (
     <div>

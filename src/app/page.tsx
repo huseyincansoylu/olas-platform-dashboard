@@ -1,10 +1,9 @@
 'use client'
 import { DataTable } from '@/components/data-table'
 import { instanceColumns, suitesColumns } from './columns'
-import SeeAllNav from './see-all-nav'
 import { baseurl } from '@/lib/baseUrl'
 import { useQuery } from '@tanstack/react-query'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import {
   Select,
@@ -28,22 +27,23 @@ async function getProjectFSMSuites(token: string, projectId: string) {
 }
 
 import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { useProjectContext } from './_context/ProjectContext'
 
 export default function Home() {
-  const searchParams = useSearchParams()
+  const { selectedProjectId } = useProjectContext()
+  const router = useRouter()
   const { address } = useAccount()
 
   const [selectedOption, setSelectedOption] = useState<string>('')
-
-  const projectId = searchParams.get('sp')
 
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['fsmsuites', projectId, token],
-    queryFn: () => getProjectFSMSuites(token!, projectId!),
-    enabled: !!token && !!projectId,
+    queryKey: ['fsmsuites', selectedProjectId, token],
+    queryFn: () => getProjectFSMSuites(token!, selectedProjectId!),
+    enabled: !!token && !!selectedProjectId,
   })
 
   useEffect(() => {
@@ -93,7 +93,13 @@ export default function Home() {
             </Select>
           </div>
 
-          <SeeAllNav />
+          <Button
+            size={'sm'}
+            variant="secondary"
+            onClick={() => router.push(`/fsm/${selectedOption}/all`)}
+          >
+            See All History
+          </Button>
         </div>
 
         <h3 className="mb-4 text-lg font-semibold mt-10">Fsms List</h3>

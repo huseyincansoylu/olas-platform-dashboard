@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
+import { useProjectContext } from '../_context/ProjectContext'
 
 async function getProjects(token: string) {
   const res = await fetch(`${baseurl}/api/projects`, {
@@ -45,12 +45,10 @@ async function getProjects(token: string) {
 }
 
 export default function DashboardTopNav({ children }: { children: ReactNode }) {
-  const [selectedOption, setSelectedOption] = useState<string>('')
+  const { selectedProjectId, setSelectedProjectId } = useProjectContext()
   const [token, setToken] = useState<string | null>(null)
   const { address } = useAccount()
   const { signMessageAsync } = useSignMessage()
-
-  const router = useRouter()
 
   const { data, isLoading } = useQuery({
     queryKey: ['projects', token, address],
@@ -100,10 +98,9 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (data && data.length > 0) {
       const firstProjectId = data[0].id
-      setSelectedOption(firstProjectId)
-      router.push(`/?sp=${firstProjectId}`)
+      setSelectedProjectId(firstProjectId)
     }
-  }, [data, router])
+  }, [data])
 
   return (
     <div className="flex flex-col">
@@ -147,10 +144,9 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
               ) : (
                 <Select
                   onValueChange={(value) => {
-                    setSelectedOption(value)
-                    router.push(`/?sp=${value}`)
+                    setSelectedProjectId(value)
                   }}
-                  value={selectedOption}
+                  value={selectedProjectId ?? ''}
                 >
                   <SelectTrigger className="w-[220px]">
                     <SelectValue placeholder="Select a project" />

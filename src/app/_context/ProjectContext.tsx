@@ -1,64 +1,35 @@
 'use client'
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from 'react'
-import axios from 'axios'
-import { useAccountEffect } from 'wagmi'
-
-type Project = any
+import React, { createContext, useContext, useState, ReactNode } from 'react'
 
 interface ProjectContextType {
-  projects: Project[]
+  selectedProjectId: string | null
+  setSelectedProjectId: (id: string) => void
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined)
 
-const ProjectProvider = ({ children }: { children: ReactNode }) => {
-  const [projects, setProjects] = useState<Project[]>([])
-  const token = localStorage.getItem('token')
+export const ProjectProvider = ({ children }: { children: ReactNode }) => {
+  const [selectedProjectId, setSelectedProjectIdState] = useState<
+    string | null
+  >(null)
 
-  useAccountEffect({
-    onDisconnect() {},
-  })
-
-  useEffect(() => {
-    if (!token) return
-    getProjectInformation()
-  }, [token])
-
-  const getProjectInformation = async () => {
-    try {
-      const { data: projects } = await axios.get<Project[]>(
-        'http://localhost:8000/projects',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      setProjects(projects)
-    } catch (error) {
-      console.error('Fetching projects error:', error)
-    }
+  const setSelectedProjectId = (id: string) => {
+    setSelectedProjectIdState(id)
   }
 
   return (
-    <ProjectContext.Provider value={{ projects }}>
+    <ProjectContext.Provider
+      value={{ selectedProjectId, setSelectedProjectId }}
+    >
       {children}
     </ProjectContext.Provider>
   )
 }
 
-const useProjectContext = (): ProjectContextType => {
+export const useProjectContext = (): ProjectContextType => {
   const context = useContext(ProjectContext)
   if (!context) {
     throw new Error('useProjectContext must be used within a ProjectProvider')
   }
   return context
 }
-
-export { ProjectProvider, useProjectContext }
