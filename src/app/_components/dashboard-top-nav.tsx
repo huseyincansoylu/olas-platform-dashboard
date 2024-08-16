@@ -86,7 +86,7 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
 
         const newToken = loginResponse.data.token
         localStorage.setItem('token', newToken)
-        setToken(newToken) // Token'ı state'e kaydediyoruz
+        setToken(newToken)
       } catch (error) {
         console.error('Login error:', error)
       }
@@ -137,7 +137,7 @@ export default function DashboardTopNav({ children }: { children: ReactNode }) {
 
         {address && (
           <>
-            <div>Select Project: </div>
+            <div className="ml-1">Project: </div>
             <div>
               {isLoading ? (
                 <div>Loading projects...</div> // Yüklenirken gösterilecek bir mesaj

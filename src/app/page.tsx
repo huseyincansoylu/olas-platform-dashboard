@@ -3,20 +3,29 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAccount } from 'wagmi'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+
 import { DataTable } from '@/components/data-table'
 import { baseurl } from '@/lib/baseUrl'
 import { useProjectContext } from './_context/ProjectContext'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Bot, ChevronsUpDown } from 'lucide-react'
+
+import Image from 'next/image'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { CollapsibleContent } from '@radix-ui/react-collapsible'
 
 const columns = [
   { accessorKey: 'instanceName', header: 'Instance Name' },
@@ -66,6 +75,8 @@ export default function Home() {
   const { selectedProjectId } = useProjectContext()
   const { address } = useAccount()
 
+  const [isOpen, setIsOpen] = useState(false)
+
   const [selectedOption, setSelectedOption] = useState<string>('')
 
   const token =
@@ -108,9 +119,9 @@ export default function Home() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <div className="flex space-x-2 items-center">
-          <h2>Select FSM Suite: </h2>
+          {/* <h2>FSM Suite: </h2>
           <Select
             onValueChange={(value) => setSelectedOption(value)}
             value={selectedOption}
@@ -128,51 +139,105 @@ export default function Home() {
                 ))}
               </SelectGroup>
             </SelectContent>
-          </Select>
+          </Select> */}
+
+          <Collapsible
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            className="w-[250px] space-y-2"
+          >
+            <div className="flex items-center justify-between space-x-4 px-4">
+              <h4 className="text-sm font-semibold">
+                {fsmSuites.length} FSM Suites found
+              </h4>
+              {fsmSuites.length > 1 && (
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-9 p-0">
+                    <ChevronsUpDown className="h-4 w-4" />
+                    <span className="sr-only">Toggle</span>
+                  </Button>
+                </CollapsibleTrigger>
+              )}
+            </div>
+
+            <div className="rounded-md border px-4 py-3 font-mono text-sm border-blue-400">
+              {fsmSuites.find((suite) => suite.id === selectedOption)?.name}
+            </div>
+
+            <CollapsibleContent className="space-y-2">
+              {fsmSuites
+                .filter((suite) => suite.id !== selectedOption) // Exclude selected option from list
+                .map((suite: any) => (
+                  <div
+                    key={suite.id}
+                    className="rounded-md border px-4 py-3 font-mono text-sm cursor-pointer"
+                    onClick={() => {
+                      setSelectedOption(suite.id)
+                      setIsOpen(false)
+                    }}
+                  >
+                    {suite.name}
+                  </div>
+                ))}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
 
-      <Tabs defaultValue="instances">
-        <TabsList>
-          <TabsTrigger value="instances">Instances</TabsTrigger>
-          <TabsTrigger value="fsms">Fsms</TabsTrigger>
-        </TabsList>
+      <Card className="w-[540px] mb-4">
+        <CardHeader className="grid grid-cols-[1fr_110px] items-start gap-4 space-y-0">
+          <div className="space-y-1">
+            <CardDescription>{selectedData?.description}</CardDescription>
+          </div>
 
-        <TabsContent value="fsms">
-          {selectedData && selectedData.fsms && (
-            <>
-              <h3 className="mb-4 text-lg font-semibold mt-5">Fsms</h3>
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {selectedData.fsms.map((fsm: any) => (
-                  <Card key={fsm.id}>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline">Fsm apps</Button>
+            </PopoverTrigger>
+
+            <PopoverContent className="w-full" asChild>
+              <ScrollArea className="h-[240px] w-[450px] rounded-md border p-4">
+                <h3>Fsm Apps-Skills</h3>
+                {selectedData?.fsms.map((fsm: any) => (
+                  <Card key={fsm.id} className="mt-4">
                     <CardHeader>
-                      <CardTitle>{fsm.name}</CardTitle>
+                      <CardTitle className="text-sm">{fsm.name}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p>{fsm.description}</p>
+                      <p className="text-xs">{fsm.description}</p>
                     </CardContent>
                   </Card>
                 ))}
-              </div>
-            </>
-          )}
-        </TabsContent>
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col spaace-y-2">
+            <div className="flex items-center space-x-2 text-base font-normal">
+              <span> Number of instance </span>
+              <Bot />
+            </div>
+            <div className="text-2xl font-bold">12</div>
+          </div>
+          <div className="mt-4 flex items-center space-x-4">
+            <Image src="/nft.svg" width={40} height={40} alt="nft-logo" />
+            <div className="text-xl font-bold">#149867</div>
+          </div>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="instances">
-          <h3 className="mb-4 text-lg font-semibold mt-5">Instance Lists</h3>
-          {historyLoading ? (
-            'Loading History...'
-          ) : historyError ? (
-            'Failed to load Agent Histories'
-          ) : historyData &&
-            Array.isArray(historyData) &&
-            historyData.length > 0 ? (
-            <DataTable data={historyData} columns={columns} />
-          ) : (
-            'No history data available'
-          )}
-        </TabsContent>
-      </Tabs>
+      {historyLoading ? (
+        'Loading History...'
+      ) : historyError ? (
+        'Failed to load Agent Histories'
+      ) : historyData &&
+        Array.isArray(historyData) &&
+        historyData.length > 0 ? (
+        <DataTable data={historyData} columns={columns} />
+      ) : (
+        'No history data available'
+      )}
     </div>
   )
 }

@@ -26,7 +26,10 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <ProjectContext.Provider
-      value={{ selectedProjectId, setSelectedProjectId }}
+      value={{
+        selectedProjectId,
+        setSelectedProjectId,
+      }}
     >
       {children}
     </ProjectContext.Provider>
