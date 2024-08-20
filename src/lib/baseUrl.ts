@@ -1,1 +1,1 @@
-export const baseurl = 'http://localhost:8001'
+export const baseurl = 'https://olas-api.keyko.rocks'
