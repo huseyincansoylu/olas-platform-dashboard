@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Bot, ChevronsUpDown } from 'lucide-react'
+import { Bot, Info } from 'lucide-react'
 
 import Image from 'next/image'
 import {
@@ -24,17 +24,25 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { CollapsibleContent } from '@radix-ui/react-collapsible'
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const columns = [
   { accessorKey: 'instanceName', header: 'Instance Name' },
   { accessorKey: 'agentName', header: 'Agent Name' },
-  { accessorKey: '', header: 'Status' },
-  { accessorKey: '', header: 'Wallet Address' },
+  { accessorKey: 'agentStatus', header: 'Status' },
+  { accessorKey: 'agentWalletAddress', header: 'Wallet Address' },
   { accessorKey: '', header: 'Transactions' },
   { accessorKey: 'startTime', header: 'Start Time' },
-  { accessorKey: 'endTime', header: 'End Time' },
+  // { accessorKey: 'endTime', header: 'End Time' },
 ]
 
 async function getProjectFSMSuites(token: string, projectId: string) {
@@ -74,8 +82,6 @@ async function getAgentHistories(token: string, fsmId: string) {
 export default function Home() {
   const { selectedProjectId } = useProjectContext()
   const { address } = useAccount()
-
-  const [isOpen, setIsOpen] = useState(false)
 
   const [selectedOption, setSelectedOption] = useState<string>('')
 
@@ -121,7 +127,7 @@ export default function Home() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <div className="flex space-x-2 items-center">
-          {/* <h2>FSM Suite: </h2>
+          <h2>FSM Suite: </h2>
           <Select
             onValueChange={(value) => setSelectedOption(value)}
             value={selectedOption}
@@ -139,52 +145,11 @@ export default function Home() {
                 ))}
               </SelectGroup>
             </SelectContent>
-          </Select> */}
-
-          <Collapsible
-            open={isOpen}
-            onOpenChange={setIsOpen}
-            className="w-[250px] space-y-2"
-          >
-            <div className="flex items-center justify-between space-x-4 px-4">
-              <h4 className="text-sm font-semibold">
-                {fsmSuites.length} FSM Suites found
-              </h4>
-              {fsmSuites.length > 1 && (
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="w-9 p-0">
-                    <ChevronsUpDown className="h-4 w-4" />
-                    <span className="sr-only">Toggle</span>
-                  </Button>
-                </CollapsibleTrigger>
-              )}
-            </div>
-
-            <div className="rounded-md border px-4 py-3 font-mono text-sm border-blue-400">
-              {fsmSuites.find((suite) => suite.id === selectedOption)?.name}
-            </div>
-
-            <CollapsibleContent className="space-y-2">
-              {fsmSuites
-                .filter((suite) => suite.id !== selectedOption) // Exclude selected option from list
-                .map((suite: any) => (
-                  <div
-                    key={suite.id}
-                    className="rounded-md border px-4 py-3 font-mono text-sm cursor-pointer"
-                    onClick={() => {
-                      setSelectedOption(suite.id)
-                      setIsOpen(false)
-                    }}
-                  >
-                    {suite.name}
-                  </div>
-                ))}
-            </CollapsibleContent>
-          </Collapsible>
+          </Select>
         </div>
       </div>
 
-      <Card className="w-[540px] mb-4">
+      <Card className="w-[540px] mb-4 border-blue-400">
         <CardHeader className="grid grid-cols-[1fr_110px] items-start gap-4 space-y-0">
           <div className="space-y-1">
             <CardDescription>{selectedData?.description}</CardDescription>
@@ -192,11 +157,16 @@ export default function Home() {
 
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline">Fsm apps</Button>
+              <Button variant="link">
+                <span>Fsm apps </span>{' '}
+                <span className="ml-1">
+                  <Info height={16} />
+                </span>
+              </Button>
             </PopoverTrigger>
 
             <PopoverContent className="w-full" asChild>
-              <ScrollArea className="h-[240px] w-[450px] rounded-md border p-4">
+              <ScrollArea className="h-[400px] w-[450px] rounded-md border p-4">
                 <h3>Fsm Apps-Skills</h3>
                 {selectedData?.fsms.map((fsm: any) => (
                   <Card key={fsm.id} className="mt-4">
@@ -212,17 +182,16 @@ export default function Home() {
             </PopoverContent>
           </Popover>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex justify-between">
           <div className="flex flex-col spaace-y-2">
             <div className="flex items-center space-x-2 text-base font-normal">
-              <span> Number of instance </span>
               <Bot />
+              <span> {historyData?.length} Agents deployed </span>
             </div>
-            <div className="text-2xl font-bold">12</div>
           </div>
-          <div className="mt-4 flex items-center space-x-4">
+          <div className="flex items-center space-x-4">
             <Image src="/nft.svg" width={40} height={40} alt="nft-logo" />
-            <div className="text-xl font-bold">#149867</div>
+            <div className="text-lg font-medium">#149867</div>
           </div>
         </CardContent>
       </Card>
